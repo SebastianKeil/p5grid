@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>p5.js Sketch Grid</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.1/p5.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="sketch-container"></div>
+
+  <div id="navbar">
+    <button id="btn-left" class="nav-btn" title="Left">&#9664;</button>
+    <div class="nav-sep"></div>
+    <button id="btn-up" class="nav-btn" title="Up">&#9650;</button>
+    <div class="nav-sep"></div>
+    <button id="btn-down" class="nav-btn" title="Down">&#9660;</button>
+    <div class="nav-sep"></div>
+    <button id="btn-right" class="nav-btn" title="Right">&#9654;</button>
+    <div class="nav-sep"></div>
+    <span id="position-label">0, 0 &mdash; mass_attraction</span>
+  </div>
+
+  <!-- Sketch modules -->
+  <script src="sketches/mass_attraction.js"></script>
+  <script src="sketches/moving_masses.js"></script>
+  <script src="sketches/signal_rect.js"></script>
+  <script src="sketches/pretty_curiosity.js"></script>
+
+  <!-- Grid logic (loaded last) -->
+  <script src="grid.js"></script>
+</body>
+</html>

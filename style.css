@@ -1,0 +1,100 @@
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #1a1a1a;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#sketch-container {
+  width: 100%;
+  height: calc(100vh - 60px);
+  position: relative;
+  overflow: hidden;
+  background: #111;
+}
+
+#sketch-container canvas {
+  display: block;
+}
+
+.sketch-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ---- Navigation Bar ---- */
+#navbar {
+  width: 100%;
+  height: 60px;
+  background: #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  border-top: 1px solid #444;
+  user-select: none;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  color: #ddd;
+  font-size: 1.4rem;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  line-height: 1;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: #333;
+  color: #fff;
+}
+
+.nav-btn:disabled {
+  color: #555;
+  cursor: default;
+}
+
+.nav-sep {
+  width: 1px;
+  height: 32px;
+  background: #444;
+}
+
+#position-label {
+  color: #888;
+  font-size: 0.85rem;
+  margin-left: 20px;
+  letter-spacing: 0.03em;
+}
+
+/* ---- p5 slider styling (used by Pretty_curiosity) ---- */
+.mySliders::-webkit-slider-runnable-track {
+  background: #FFFFFF;
+  height: 10px;
+  border-radius: 5px;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.mySliders::-webkit-slider-thumb {
+  width: 25px;
+  height: 25px;
+  background: #5500cc;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -3px;
+  border-radius: 8px;
+}
