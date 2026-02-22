@@ -14,10 +14,42 @@ html, body {
 
 #sketch-container {
   width: 100%;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 80px);
   position: relative;
   overflow: hidden;
   background: #111;
+}
+
+/* Large gradient background spanning the full grid */
+#sketch-container::before {
+  content: "";
+  position: absolute;
+  /* sized to the full grid — updated by grid.js via CSS vars */
+  width: calc(100% * var(--grid-cols, 5));
+  height: calc(100% * var(--grid-rows, 5));
+  background:
+    radial-gradient(circle 90vmin at 30% 35%, rgba(214, 125, 255, 0.9), transparent 70%),
+    radial-gradient(circle 70vmin at 70% 65%, rgba(214, 125, 255, 0.9), transparent 70%),
+    radial-gradient(circle 50vmin at 40% 45%, rgba(214, 125, 255, 0.9), transparent 70%),
+    rgb(82, 107, 163);
+  transform: translate(
+    calc(-100% / var(--grid-cols, 5) * var(--grid-col, 0)),
+    calc(-100% / var(--grid-rows, 5) * var(--grid-row, 0))
+  );
+  transition: transform 450ms ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Blur overlay to diffuse the gradient into a soft glow */
+#sketch-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(90px);
+  -webkit-backdrop-filter: blur(90px);
+  z-index: 0;
+  pointer-events: none;
 }
 
 #sketch-container canvas {
@@ -31,27 +63,55 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  z-index: 1;
 }
 
 /* ---- Navigation Bar ---- */
 #navbar {
   width: 100%;
-  height: 60px;
+  height: 80px;
   background: #222;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
   border-top: 1px solid #444;
   user-select: none;
+}
+
+/* ---- Title row ---- */
+#nav-title {
+  color: #ccc;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 0 2px;
+  text-align: center;
+  width: 100%;
+  border-bottom: 1px solid #333;
+}
+
+/* ---- Controls row ---- */
+#nav-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  width: 100%;
+  padding: 0 12px;
+}
+
+.nav-arrows {
+  display: flex;
+  align-items: center;
 }
 
 .nav-btn {
   background: none;
   border: none;
   color: #ddd;
-  font-size: 1.4rem;
-  padding: 10px 24px;
+  font-size: 1.6rem;
+  padding: 8px 22px;
   cursor: pointer;
   transition: color 0.15s, background 0.15s;
   line-height: 1;
@@ -69,15 +129,127 @@ html, body {
 
 .nav-sep {
   width: 1px;
-  height: 32px;
+  height: 28px;
   background: #444;
 }
 
-#position-label {
-  color: #888;
-  font-size: 0.85rem;
-  margin-left: 20px;
-  letter-spacing: 0.03em;
+/* ---- Mini grid map ---- */
+#mini-grid {
+  display: inline-grid;
+  gap: 2px;
+}
+
+.mg-cell {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: #333;
+  transition: background 0.25s;
+}
+
+.mg-cell.has-screen {
+  background: #666;
+}
+
+.mg-cell.current {
+  background: #7af;
+}
+
+/* ---- Content panel (HTML screens) ---- */
+.content-panel {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  padding: 3rem 2rem;
+  color: #ddd;
+  background: transparent;
+}
+
+.content-panel > * {
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.content-panel h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #fff;
+}
+
+.content-panel h2 {
+  font-size: 1.4rem;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  color: #eee;
+}
+
+.content-panel h3 {
+  font-size: 1.1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #ccc;
+}
+
+.content-panel p {
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+
+.content-panel a {
+  color: #7af;
+  text-decoration: none;
+}
+
+.content-panel a:hover {
+  text-decoration: underline;
+}
+
+.content-panel img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 1rem 0;
+  display: block;
+}
+
+.content-panel video {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 1rem 0;
+  display: block;
+}
+
+.content-panel ul,
+.content-panel ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.content-panel li {
+  line-height: 1.7;
+  margin-bottom: 0.3rem;
+}
+
+.content-panel code {
+  background: #222;
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.content-panel pre {
+  background: #1a1a2e;
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.content-panel pre code {
+  background: none;
+  padding: 0;
 }
 
 /* ---- p5 slider styling (used by Pretty_curiosity) ---- */

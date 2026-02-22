@@ -1,7 +1,7 @@
-// moving_masses – p5 instance-mode sketch
+// moving_masses – p5 instance-mode sketch (ES module)
 // Merges: sketch.js, mover.js, sun.js
 
-function movingMassesSketch(p) {
+export default function(p) {
 
   // ---- Helper classes ----
 
@@ -136,7 +136,7 @@ function movingMassesSketch(p) {
   };
 
   p.draw = function () {
-    p.background(220);
+    p.clear();
     sun.applyForceTo(movers);
     sun.show();
 

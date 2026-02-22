@@ -1,16 +1,17 @@
-// ---- Grid Configuration ----
-const GRID_COLS = 3;
-const GRID_ROWS = 3;
+// grid.js — core engine: config-driven grid, lazy loading, routing, transitions
+// Requires grid-config.js to be loaded first (provides GRID_CONFIG)
+
 const TRANSITION_MS = 450;
 
-// Map of "col,row" -> { name, sketchFn }
-// sketchFn is a function(p) for p5 instance mode
-const GRID_SKETCHES = {
-  "0,0": { name: "mass_attraction",   sketchFn: massAttractionSketch },
-  "1,0": { name: "moving_masses",     sketchFn: movingMassesSketch },
-  "0,1": { name: "signal_rect",       sketchFn: signalRectSketch },
-  "2,2": { name: "Pretty_curiosity",  sketchFn: prettyCuriositySketch },
-};
+// ---- Build lookup maps from config ----
+const screensByPos = {};   // "col,row" -> config entry
+const screensBySlug = {};  // slug     -> config entry
+
+for (const s of GRID_CONFIG.screens) {
+  const key = s.col + "," + s.row;
+  screensByPos[key] = s;
+  screensBySlug[s.slug] = s;
+}
 
 // ---- State ----
 let currentCol = 0;
@@ -20,16 +21,24 @@ let currentPanel = null;
 let isTransitioning = false;
 
 // ---- DOM refs ----
-const container = document.getElementById("sketch-container");
-const btnLeft   = document.getElementById("btn-left");
-const btnRight  = document.getElementById("btn-right");
-const btnUp     = document.getElementById("btn-up");
-const btnDown   = document.getElementById("btn-down");
-const posLabel  = document.getElementById("position-label");
+const container  = document.getElementById("sketch-container");
+const btnLeft    = document.getElementById("btn-left");
+const btnRight   = document.getElementById("btn-right");
+const btnUp      = document.getElementById("btn-up");
+const btnDown    = document.getElementById("btn-down");
+const navTitle   = document.getElementById("nav-title");
+const miniGridEl = document.getElementById("mini-grid");
 
 // ---- Helpers ----
 function canMove(col, row) {
-  return col >= 0 && col < GRID_COLS && row >= 0 && row < GRID_ROWS;
+  return col >= 0 && col < GRID_CONFIG.cols && row >= 0 && row < GRID_CONFIG.rows;
+}
+
+function updateBackground() {
+  container.style.setProperty("--grid-cols", GRID_CONFIG.cols);
+  container.style.setProperty("--grid-rows", GRID_CONFIG.rows);
+  container.style.setProperty("--grid-col", currentCol);
+  container.style.setProperty("--grid-row", currentRow);
 }
 
 function updateButtons() {
@@ -39,11 +48,39 @@ function updateButtons() {
   btnDown.disabled  = !canMove(currentCol, currentRow + 1);
 }
 
-function updateLabel() {
+function updateTitle() {
   const key = currentCol + "," + currentRow;
-  const entry = GRID_SKETCHES[key];
-  const name = entry ? entry.name : "empty";
-  posLabel.textContent = currentCol + ", " + currentRow + " \u2014 " + name;
+  const entry = screensByPos[key];
+  navTitle.textContent = entry ? entry.title : "\u00B7";
+}
+
+// ---- Mini grid map ----
+const miniGridCells = {};  // "col,row" -> DOM element
+
+function buildMiniGrid() {
+  miniGridEl.style.gridTemplateColumns = "repeat(" + GRID_CONFIG.cols + ", 8px)";
+  miniGridEl.style.gridTemplateRows    = "repeat(" + GRID_CONFIG.rows + ", 8px)";
+
+  for (let r = 0; r < GRID_CONFIG.rows; r++) {
+    for (let c = 0; c < GRID_CONFIG.cols; c++) {
+      const cell = document.createElement("div");
+      cell.className = "mg-cell";
+      const key = c + "," + r;
+      if (screensByPos[key]) cell.classList.add("has-screen");
+      miniGridCells[key] = cell;
+      miniGridEl.appendChild(cell);
+    }
+  }
+}
+
+function updateMiniGrid() {
+  for (const key in miniGridCells) {
+    miniGridCells[key].classList.remove("current");
+  }
+  const key = currentCol + "," + currentRow;
+  if (miniGridCells[key]) {
+    miniGridCells[key].classList.add("current");
+  }
 }
 
 function createPanel() {
@@ -52,13 +89,44 @@ function createPanel() {
   return panel;
 }
 
-function launchInto(panel) {
+// ---- URL routing ----
+function currentSlug() {
   const key = currentCol + "," + currentRow;
-  const entry = GRID_SKETCHES[key];
+  const entry = screensByPos[key];
+  return entry ? entry.slug : null;
+}
 
-  if (entry && typeof entry.sketchFn === "function") {
-    currentP5 = new p5(entry.sketchFn, panel);
-  } else {
+function pushURL() {
+  const slug = currentSlug();
+  const path = slug ? "/" + slug : "/";
+  if (window.location.pathname !== path) {
+    history.pushState({ col: currentCol, row: currentRow }, "", path);
+  }
+}
+
+function resolveInitialRoute() {
+  const path = window.location.pathname.replace(/^\/+|\/+$/g, ""); // trim slashes
+  if (path && screensBySlug[path]) {
+    const s = screensBySlug[path];
+    currentCol = s.col;
+    currentRow = s.row;
+  }
+  // Replace current history entry with state
+  history.replaceState({ col: currentCol, row: currentRow }, "", window.location.pathname);
+}
+
+window.addEventListener("popstate", (e) => {
+  if (e.state && typeof e.state.col === "number") {
+    navigateTo(e.state.col, e.state.row, true);
+  }
+});
+
+// ---- Lazy screen launcher ----
+async function launchInto(panel) {
+  const key = currentCol + "," + currentRow;
+  const entry = screensByPos[key];
+
+  if (!entry) {
     // Empty cell placeholder
     const div = document.createElement("div");
     div.style.cssText =
@@ -66,12 +134,43 @@ function launchInto(panel) {
       "color:#444;font-size:1.2rem;font-family:monospace;";
     div.textContent = "(" + currentCol + ", " + currentRow + ")";
     panel.appendChild(div);
+    return;
+  }
+
+  if (entry.type === "p5") {
+    try {
+      const mod = await import("./screens/" + entry.slug + "/sketch.js");
+      // Only launch if this panel is still the current one (user may have navigated away)
+      if (panel === currentPanel) {
+        currentP5 = new p5(mod.default, panel);
+      }
+    } catch (err) {
+      console.error("Failed to load sketch for " + entry.slug, err);
+      panel.innerHTML = '<div style="color:#c44;padding:2rem;">Failed to load sketch: ' + entry.slug + '</div>';
+    }
+  } else if (entry.type === "html") {
+    try {
+      const res = await fetch("./screens/" + entry.slug + "/content.html");
+      if (!res.ok) throw new Error(res.status + " " + res.statusText);
+      const html = await res.text();
+      if (panel === currentPanel) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "content-panel";
+        wrapper.innerHTML = html;
+        panel.appendChild(wrapper);
+      }
+    } catch (err) {
+      console.error("Failed to load content for " + entry.slug, err);
+      panel.innerHTML = '<div style="color:#c44;padding:2rem;">Failed to load content: ' + entry.slug + '</div>';
+    }
   }
 }
 
 // ---- Navigation with slide transition ----
-function navigateTo(col, row) {
+// skipPush = true when triggered by popstate (don't push to history again)
+function navigateTo(col, row, skipPush) {
   if (!canMove(col, row) || isTransitioning) return;
+  if (col === currentCol && row === currentRow) return;
 
   const dx = col - currentCol;
   const dy = row - currentRow;
@@ -92,12 +191,15 @@ function navigateTo(col, row) {
   else              newPanel.style.transform = "translateY(-100%)";
   container.appendChild(newPanel);
 
-  // Update state & launch sketch in the new panel
+  // Update state & launch screen in the new panel
   currentCol = col;
   currentRow = row;
   currentPanel = newPanel;
   updateButtons();
-  updateLabel();
+  updateTitle();
+  updateMiniGrid();
+  updateBackground();
+  if (!skipPush) pushURL();
   launchInto(newPanel);
 
   // Force reflow so the browser registers the starting position
@@ -127,7 +229,6 @@ function navigateTo(col, row) {
     isTransitioning = false;
   }
   newPanel.addEventListener("transitionend", cleanup, { once: true });
-  // Safety timeout in case transitionend doesn't fire
   setTimeout(cleanup, TRANSITION_MS + 50);
 }
 
@@ -138,7 +239,6 @@ btnUp.addEventListener("click",    () => navigateTo(currentCol, currentRow - 1))
 btnDown.addEventListener("click",  () => navigateTo(currentCol, currentRow + 1));
 
 // ---- Keyboard support ----
-// Skip navigation when a slider or input inside the sketch has focus
 document.addEventListener("keydown", (e) => {
   const tag = document.activeElement && document.activeElement.tagName;
   if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
@@ -152,8 +252,13 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ---- Boot ----
+resolveInitialRoute();
+buildMiniGrid();
 currentPanel = createPanel();
 container.appendChild(currentPanel);
 updateButtons();
-updateLabel();
+updateTitle();
+updateMiniGrid();
+updateBackground();
+pushURL();
 launchInto(currentPanel);

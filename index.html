@@ -11,24 +11,23 @@
   <div id="sketch-container"></div>
 
   <div id="navbar">
-    <button id="btn-left" class="nav-btn" title="Left">&#9664;</button>
-    <div class="nav-sep"></div>
-    <button id="btn-up" class="nav-btn" title="Up">&#9650;</button>
-    <div class="nav-sep"></div>
-    <button id="btn-down" class="nav-btn" title="Down">&#9660;</button>
-    <div class="nav-sep"></div>
-    <button id="btn-right" class="nav-btn" title="Right">&#9654;</button>
-    <div class="nav-sep"></div>
-    <span id="position-label">0, 0 &mdash; mass_attraction</span>
+    <div id="nav-title">loading&hellip;</div>
+    <div id="nav-controls">
+      <div class="nav-arrows">
+        <button id="btn-left" class="nav-btn" title="Left">&#9664;</button>
+        <div class="nav-sep"></div>
+        <button id="btn-up" class="nav-btn" title="Up">&#9650;</button>
+        <div class="nav-sep"></div>
+        <button id="btn-down" class="nav-btn" title="Down">&#9660;</button>
+        <div class="nav-sep"></div>
+        <button id="btn-right" class="nav-btn" title="Right">&#9654;</button>
+      </div>
+      <div id="mini-grid"></div>
+    </div>
   </div>
 
-  <!-- Sketch modules -->
-  <script src="sketches/mass_attraction.js"></script>
-  <script src="sketches/moving_masses.js"></script>
-  <script src="sketches/signal_rect.js"></script>
-  <script src="sketches/pretty_curiosity.js"></script>
-
-  <!-- Grid logic (loaded last) -->
-  <script src="grid.js"></script>
+  <!-- Config + engine (no individual sketch tags needed) -->
+  <script src="grid-config.js"></script>
+  <script type="module" src="grid.js"></script>
 </body>
 </html>

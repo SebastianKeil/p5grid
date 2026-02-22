@@ -1,10 +1,10 @@
-// signal_rect – p5 instance-mode sketch
+// signal_rect – p5 instance-mode sketch (ES module)
 // Fourier series / signal visualization
 // Vertical layout: epicircles on top, wave diagram below
 // Wave diagram rotated 90°: time ↓, amplitude →
 // Epicircles rotated 90° so x = sin (square wave), connection drops straight down
 
-function signalRectSketch(p) {
+export default function(p) {
 
   // ---- Sketch state ----
   let time = 0;
@@ -43,7 +43,7 @@ function signalRectSketch(p) {
   };
 
   p.draw = function () {
-    p.background(0);
+    p.clear();
 
     // ========== Top half: epicircles ==========
     p.push();

@@ -1,7 +1,7 @@
-// mass_attraction – p5 instance-mode sketch
+// mass_attraction – p5 instance-mode sketch (ES module)
 // Merges: sketch.js, mover.js, mass.js
 
-function massAttractionSketch(p) {
+export default function(p) {
 
   // ---- Helper classes (use p for all p5 calls) ----
 
@@ -106,7 +106,7 @@ function massAttractionSketch(p) {
   };
 
   p.draw = function () {
-    p.background(120);
+    p.clear();
 
     if (movers.length < n.value()) {
       movers.push(new Mover(p.width / 2 + 100, p.height / 4));

@@ -1,0 +1,87 @@
+<div class="landing">
+  <h1 class="landing-name">Sebastian Keil</h1>
+  <p class="landing-tagline">Creative code, experiments &amp; curiosities.</p>
+
+  <div class="landing-nav-hint">
+    <div class="landing-arrows">
+      <span class="arrow-icon">&#9654;</span>
+      <span class="arrow-icon">&#9660;</span>
+    </div>
+    <p>Use the <strong>arrow keys</strong> or the buttons below to explore.</p>
+  </div>
+</div>
+
+<style>
+  .landing {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    padding: 2rem;
+    color: #eee;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  .landing-name {
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+    color: #fff;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+  }
+
+  .landing-tagline {
+    font-size: clamp(0.9rem, 2vw, 1.2rem);
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 300;
+    margin-bottom: 3rem;
+    max-width: 400px;
+  }
+
+  .landing-nav-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    opacity: 0.45;
+    transition: opacity 0.3s;
+  }
+
+  .landing-nav-hint:hover {
+    opacity: 0.7;
+  }
+
+  .landing-arrows {
+    display: flex;
+    gap: 1.2rem;
+  }
+
+  .arrow-icon {
+    font-size: 1.4rem;
+    color: rgba(255, 255, 255, 0.9);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+
+  .arrow-icon:nth-child(2) {
+    animation-delay: 0.3s;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50%      { opacity: 1;   transform: scale(1.15); }
+  }
+
+  .landing-nav-hint p {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    max-width: 260px;
+    line-height: 1.5;
+  }
+
+  .landing-nav-hint p strong {
+    color: rgba(255, 255, 255, 0.95);
+  }
+</style>
