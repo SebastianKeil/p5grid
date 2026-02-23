@@ -9,6 +9,7 @@ const GRID_CONFIG = {
     { col: 1, row: 0, slug: "moving-masses",    title: "Moving Masses",    type: "p5" },
     { col: 2, row: 0, slug: "mass-attraction",  title: "Mass Attraction",  type: "p5" },
     { col: 0, row: 1, slug: "signal-rect",      title: "Signal Rect",      type: "p5" },
+    { col: 1, row: 1, slug: "rgb-generator",   title: "RGB Generator",    type: "p5" },
     { col: 2, row: 2, slug: "pretty-curiosity", title: "Pretty Curiosity", type: "p5" },
   ]
 };

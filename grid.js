@@ -139,7 +139,7 @@ async function launchInto(panel) {
 
   if (entry.type === "p5") {
     try {
-      const mod = await import("./screens/" + entry.slug + "/sketch.js");
+      const mod = await import("./screens/" + entry.slug + "/sketch.js?v=" + Date.now());
       // Only launch if this panel is still the current one (user may have navigated away)
       if (panel === currentPanel) {
         currentP5 = new p5(mod.default, panel);
