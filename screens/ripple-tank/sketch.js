@@ -165,8 +165,11 @@ export default function (p) {
     let ty = lensTargetY;
 
     if (p.touches.length > 0) {
-      tx = p.constrain(p.touches[0].x, 0, p.width);
-      ty = p.constrain(p.touches[0].y, 0, p.height);
+      const touch = p.touches[0];
+      if (touch.x >= 0 && touch.x <= p.width && touch.y >= 0 && touch.y <= p.height) {
+        tx = touch.x;
+        ty = touch.y;
+      }
     } else if (p.mouseX >= 0 && p.mouseX <= p.width && p.mouseY >= 0 && p.mouseY <= p.height) {
       tx = p.mouseX;
       ty = p.mouseY;
@@ -251,19 +254,23 @@ export default function (p) {
     drawHint();
   };
 
-  p.mousePressed = function () {
+  p.mousePressed = function (event) {
+    if (event && event.target !== p.canvas) return;
     return false;
   };
 
-  p.mouseReleased = function () {
+  p.mouseReleased = function (event) {
+    if (event && event.target !== p.canvas) return;
     return false;
   };
 
-  p.touchStarted = function () {
+  p.touchStarted = function (event) {
+    if (event && event.target !== p.canvas) return;
     return false;
   };
 
-  p.touchEnded = function () {
+  p.touchEnded = function (event) {
+    if (event && event.target !== p.canvas) return;
     return false;
   };
 
