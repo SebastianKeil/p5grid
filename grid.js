@@ -52,6 +52,13 @@ function updateTitle() {
   const key = currentCol + "," + currentRow;
   const entry = screensByPos[key];
   navTitle.textContent = entry ? entry.title : "\u00B7";
+
+  if (!entry) {
+    document.title = "p5.js Sketch Grid";
+    return;
+  }
+
+  document.title = entry.slug === "landing" ? "hello" : entry.title;
 }
 
 // ---- Mini grid map ----
