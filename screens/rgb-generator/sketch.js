@@ -6,9 +6,17 @@ export default function (p) {
 
   const MARGIN_RATIO = 0.04;   // card inset as fraction of shorter dimension
   const CORNER_R     = 16;     // card corner radius
+  const TAP_MAX_MOVE = 14;
+  const TAP_MAX_MS = 320;
+  const MOUSE_AFTER_TOUCH_IGNORE_MS = 500;
 
   let r, g, b;       // base random colour channels
   let c1, c2, c3;    // derived palette
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchStartMs = 0;
+  let touchMoved = false;
+  let lastTouchEndMs = 0;
 
   // Card bounds (computed once in setup, reusable in draw)
   let mx, my, cw, ch;
@@ -202,14 +210,38 @@ export default function (p) {
   // ---- Click → new palette ----
   p.mousePressed = function (event) {
     if (event && event.target !== p.canvas) return;
+    if (Date.now() - lastTouchEndMs < MOUSE_AFTER_TOUCH_IGNORE_MS) return;
     if (p.mouseX < 0 || p.mouseX > p.width || p.mouseY < 0 || p.mouseY > p.height) return;
     randomisePalette();
   };
 
   p.touchStarted = function (event) {
     if (event && event.target !== p.canvas) return;
-    if (p.mouseX < 0 || p.mouseX > p.width || p.mouseY < 0 || p.mouseY > p.height) return;
-    randomisePalette();
+    const t = p.touches && p.touches.length > 0 ? p.touches[0] : { x: p.mouseX, y: p.mouseY };
+    touchStartX = t.x;
+    touchStartY = t.y;
+    touchStartMs = Date.now();
+    touchMoved = false;
+    return false;
+  };
+
+  p.touchMoved = function (event) {
+    if (event && event.target !== p.canvas) return;
+    const t = p.touches && p.touches.length > 0 ? p.touches[0] : { x: p.mouseX, y: p.mouseY };
+    if (Math.hypot(t.x - touchStartX, t.y - touchStartY) > TAP_MAX_MOVE) {
+      touchMoved = true;
+    }
+    return false;
+  };
+
+  p.touchEnded = function (event) {
+    if (event && event.target !== p.canvas) return;
+    const duration = Date.now() - touchStartMs;
+    const isTap = !touchMoved && duration <= TAP_MAX_MS;
+    lastTouchEndMs = Date.now();
+    if (isTap && p.mouseX >= 0 && p.mouseX <= p.width && p.mouseY >= 0 && p.mouseY <= p.height) {
+      randomisePalette();
+    }
     return false;
   };
 

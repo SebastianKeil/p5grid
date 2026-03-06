@@ -7,6 +7,9 @@ export default function(p) {
   // ---- Constants ----
   const TILES = 24;
   const MAX_TILT = 25; // max degrees of rotation in each axis
+  const TAP_MAX_MOVE = 14;
+  const TAP_MAX_MS = 320;
+  const MOUSE_AFTER_TOUCH_IGNORE_MS = 500;
 
   // ---- Sketch state ----
   let tile_size;
@@ -29,6 +32,11 @@ export default function(p) {
   let currentRotX = 15;
   let currentRotY = -20;
   let showDots = true;
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchStartMs = 0;
+  let touchMoved = false;
+  let lastTouchEndMs = 0;
 
   function computeRings() {
     // 16x16 centered inside 24x24 → starts at 4, ends at 20
@@ -113,6 +121,11 @@ export default function(p) {
     p.noStroke();
     if (showDots) draw_shadows();
     draw_checkerboard();
+  }
+
+  function toggleIllusion() {
+    showDots = !showDots;
+    redrawBoard();
   }
 
   function createHint() {
@@ -211,16 +224,38 @@ export default function(p) {
 
   p.mousePressed = function (event) {
     if (event && event.target !== p.canvas) return;
+    if (Date.now() - lastTouchEndMs < MOUSE_AFTER_TOUCH_IGNORE_MS) return;
     if (p.mouseX < 0 || p.mouseX > p.width || p.mouseY < 0 || p.mouseY > p.height) return;
-    showDots = !showDots;
-    redrawBoard();
+    toggleIllusion();
   };
 
   p.touchStarted = function (event) {
     if (event && event.target !== p.canvas) return;
-    if (p.mouseX < 0 || p.mouseX > p.width || p.mouseY < 0 || p.mouseY > p.height) return;
-    showDots = !showDots;
-    redrawBoard();
+    const t = p.touches && p.touches.length > 0 ? p.touches[0] : { x: p.mouseX, y: p.mouseY };
+    touchStartX = t.x;
+    touchStartY = t.y;
+    touchStartMs = Date.now();
+    touchMoved = false;
+    onMouseMove({ clientX: t.x + parentEl.getBoundingClientRect().left, clientY: t.y + parentEl.getBoundingClientRect().top });
+    return false;
+  };
+
+  p.touchMoved = function (event) {
+    if (event && event.target !== p.canvas) return;
+    const t = p.touches && p.touches.length > 0 ? p.touches[0] : { x: p.mouseX, y: p.mouseY };
+    if (Math.hypot(t.x - touchStartX, t.y - touchStartY) > TAP_MAX_MOVE) touchMoved = true;
+    onMouseMove({ clientX: t.x + parentEl.getBoundingClientRect().left, clientY: t.y + parentEl.getBoundingClientRect().top });
+    return false;
+  };
+
+  p.touchEnded = function (event) {
+    if (event && event.target !== p.canvas) return;
+    const duration = Date.now() - touchStartMs;
+    const isTap = !touchMoved && duration <= TAP_MAX_MS;
+    lastTouchEndMs = Date.now();
+    if (isTap && p.mouseX >= 0 && p.mouseX <= p.width && p.mouseY >= 0 && p.mouseY <= p.height) {
+      toggleIllusion();
+    }
     return false;
   };
 
