@@ -28,6 +28,7 @@ body {
   position: relative;
   overflow: hidden;
   background: #111;
+  touch-action: manipulation;
 }
 
 /* Large gradient background spanning the full grid */
@@ -66,6 +67,7 @@ body {
 
 #sketch-container canvas {
   display: block;
+  touch-action: manipulation;
 }
 
 .sketch-panel {
@@ -131,6 +133,7 @@ body {
   cursor: pointer;
   transition: color 0.15s, background 0.15s;
   line-height: 1;
+  touch-action: manipulation;
 }
 
 .nav-btn:hover:not(:disabled) {

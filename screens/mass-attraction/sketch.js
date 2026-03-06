@@ -257,9 +257,7 @@ export default function (p) {
     p.text("particles", panel.sliderLabelX, panel.sliderLabelY);
   };
 
-  // ---- Click to place attractor ----
-  p.mousePressed = function (event) {
-    if (event && event.target !== p.canvas) return;
+  function handleTap() {
     const mouse = p.createVector(p.mouseX, p.mouseY);
     const panel = getControlPanelLayout();
 
@@ -282,6 +280,18 @@ export default function (p) {
     if (attractors.length > MAX_ATTRACTORS) {
       attractors.shift();
     }
+  }
+
+  // ---- Click / tap to place attractor ----
+  p.mousePressed = function (event) {
+    if (event && event.target !== p.canvas) return;
+    handleTap();
+  };
+
+  p.touchStarted = function (event) {
+    if (event && event.target !== p.canvas) return;
+    handleTap();
+    return false;
   };
 
   // ---- Preview circle at cursor ----

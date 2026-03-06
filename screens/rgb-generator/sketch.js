@@ -206,6 +206,13 @@ export default function (p) {
     randomisePalette();
   };
 
+  p.touchStarted = function (event) {
+    if (event && event.target !== p.canvas) return;
+    if (p.mouseX < 0 || p.mouseX > p.width || p.mouseY < 0 || p.mouseY > p.height) return;
+    randomisePalette();
+    return false;
+  };
+
   // ---- Helpers ----
   function randomisePalette() {
     r = p.random(0, 255);

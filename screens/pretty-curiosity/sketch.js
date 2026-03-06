@@ -216,6 +216,14 @@ export default function(p) {
     redrawBoard();
   };
 
+  p.touchStarted = function (event) {
+    if (event && event.target !== p.canvas) return;
+    if (p.mouseX < 0 || p.mouseX > p.width || p.mouseY < 0 || p.mouseY > p.height) return;
+    showDots = !showDots;
+    redrawBoard();
+    return false;
+  };
+
   // Clean up event listeners when sketch is removed
   p.remove = (function(originalRemove) {
     return function() {

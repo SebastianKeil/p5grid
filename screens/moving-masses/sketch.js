@@ -150,9 +150,7 @@ export default function (p) {
     showButtons();
   };
 
-  // ---- Click to spawn planet ----
-  p.mousePressed = function (event) {
-    if (event && event.target !== p.canvas) return;
+  function handleTap() {
     // Check if click is on +/- buttons (top-left area)
     const mouse = p.createVector(p.mouseX, p.mouseY);
     const panel = getControlPanelLayout();
@@ -190,6 +188,18 @@ export default function (p) {
     planet.vel = tangent.mult(orbitalSpeed);
 
     bodies.push(planet);
+  }
+
+  // ---- Click / tap to spawn planet ----
+  p.mousePressed = function (event) {
+    if (event && event.target !== p.canvas) return;
+    handleTap();
+  };
+
+  p.touchStarted = function (event) {
+    if (event && event.target !== p.canvas) return;
+    handleTap();
+    return false;
   };
 
   // ---- Preview circle at cursor ----
