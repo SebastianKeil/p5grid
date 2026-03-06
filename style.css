@@ -29,8 +29,10 @@ html, body {
   height: calc(100% * var(--grid-rows, 5));
   background:
     radial-gradient(circle 90vmin at 30% 35%, rgba(214, 125, 255, 0.9), transparent 70%),
-    radial-gradient(circle 70vmin at 70% 65%, rgba(214, 125, 255, 0.9), transparent 70%),
+    radial-gradient(circle 100vmin at 70% 65%, rgba(214, 125, 255, 0.9), transparent 70%),
     radial-gradient(circle 50vmin at 40% 45%, rgba(214, 125, 255, 0.9), transparent 70%),
+    radial-gradient(circle 50vmin at 100% 100%, rgba(214, 125, 255, 0.9), transparent 70%),
+    radial-gradient(circle 50vmin at 75% 15%, rgba(214, 125, 255, 0.9), transparent 70%),
     rgb(82, 107, 163);
   transform: translate(
     calc(-100% / var(--grid-cols, 5) * var(--grid-col, 0)),
@@ -96,15 +98,18 @@ html, body {
 #nav-controls {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 14px;
   flex: 1;
-  width: 100%;
-  padding: 0 12px;
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: 0 12px 4px;
 }
 
 .nav-arrows {
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .nav-btn {
@@ -138,6 +143,7 @@ html, body {
 #mini-grid {
   display: inline-grid;
   gap: 2px;
+  place-self: center;
 }
 
 .mg-cell {
@@ -270,4 +276,84 @@ html, body {
   -webkit-appearance: none;
   margin-top: -3px;
   border-radius: 8px;
+}
+
+/* ---- Desktop navbar polish ---- */
+@media (min-width: 960px) {
+  #sketch-container {
+    height: calc(100vh - 104px - env(safe-area-inset-bottom, 0px));
+  }
+
+  #navbar {
+    height: 104px;
+  }
+
+  #nav-title {
+    font-size: 0.92rem;
+    padding: 7px 0 5px;
+  }
+
+  #nav-controls {
+    max-width: clamp(560px, 64vw, 980px);
+    margin: 0 auto;
+    gap: 22px;
+    padding: 0 20px 6px;
+  }
+
+  .nav-btn {
+    font-size: 2rem;
+    padding: 10px 28px;
+  }
+
+  .nav-sep {
+    height: 34px;
+  }
+
+  #mini-grid {
+    gap: 3px;
+  }
+
+  .mg-cell {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+@media (min-width: 1440px) {
+  #sketch-container {
+    height: calc(100vh - 116px - env(safe-area-inset-bottom, 0px));
+  }
+
+  #navbar {
+    height: 116px;
+  }
+
+  #nav-title {
+    font-size: 1rem;
+    padding: 9px 0 6px;
+  }
+
+  #nav-controls {
+    max-width: clamp(620px, 56vw, 1100px);
+    gap: 28px;
+    padding: 0 24px 8px;
+  }
+
+  .nav-btn {
+    font-size: 2.25rem;
+    padding: 12px 34px;
+  }
+
+  .nav-sep {
+    height: 38px;
+  }
+
+  #mini-grid {
+    gap: 4px;
+  }
+
+  .mg-cell {
+    width: 12px;
+    height: 12px;
+  }
 }

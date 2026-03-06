@@ -11,6 +11,9 @@ export default function (p) {
   const MIN_MASS = 1;
   const MAX_MASS = 30;
   const DT = 1;           // time-step per frame (keep at 1 for simplicity)
+  const PANEL_W = 150;
+  const PANEL_H = 72;
+  const PANEL_BG_ALPHA = 80; // 0..255 (lower = more transparent)
 
   // ---- Unified Body class ----
   class Body {
@@ -148,17 +151,19 @@ export default function (p) {
   };
 
   // ---- Click to spawn planet ----
-  p.mousePressed = function () {
+  p.mousePressed = function (event) {
+    if (event && event.target !== p.canvas) return;
     // Check if click is on +/- buttons (top-left area)
     const mouse = p.createVector(p.mouseX, p.mouseY);
+    const panel = getControlPanelLayout();
 
-    // + button (bottom-left)
-    if (p5.Vector.dist(mouse, p.createVector(30, p.height - 30)) < 22) {
+    // + button
+    if (p5.Vector.dist(mouse, p.createVector(panel.plusX, panel.buttonY)) < 22) {
       nextMass = p.min(nextMass + 2, MAX_MASS);
       return;
     }
-    // − button (bottom-left)
-    if (p5.Vector.dist(mouse, p.createVector(80, p.height - 30)) < 22) {
+    // − button
+    if (p5.Vector.dist(mouse, p.createVector(panel.minusX, panel.buttonY)) < 22) {
       nextMass = p.max(nextMass - 2, MIN_MASS);
       return;
     }
@@ -197,27 +202,46 @@ export default function (p) {
     p.ellipse(p.mouseX, p.mouseY, previewR * 2);
   }
 
-  // ---- +/- buttons (bottom-left) ----
+  function getControlPanelLayout() {
+    const panelX = p.width * 0.5 - PANEL_W * 0.5;
+    const panelY = p.height - PANEL_H - 14;
+    const buttonY = panelY + 44;
+    return {
+      panelX,
+      panelY,
+      plusX: panelX + 52,
+      minusX: panelX + 98,
+      buttonY,
+      labelX: panelX + PANEL_W * 0.5,
+      labelY: panelY + 16,
+    };
+  }
+
+  // ---- +/- buttons inside centered control panel ----
   function showButtons() {
-    const by = p.height - 30;
+    const panel = getControlPanelLayout();
+
+    p.noStroke();
+    p.fill(242, 246, 255, PANEL_BG_ALPHA);
+    p.rect(panel.panelX, panel.panelY, PANEL_W, PANEL_H, 10);
 
     // + button
     p.noFill();
-    p.stroke(255, 255, 255, 140);
+    p.stroke(38, 54, 84, 190);
     p.strokeWeight(2);
-    p.ellipse(30, by, 36);
-    p.line(18, by, 42, by);
-    p.line(30, by - 12, 30, by + 12);
+    p.ellipse(panel.plusX, panel.buttonY, 36);
+    p.line(panel.plusX - 12, panel.buttonY, panel.plusX + 12, panel.buttonY);
+    p.line(panel.plusX, panel.buttonY - 12, panel.plusX, panel.buttonY + 12);
 
     // − button
-    p.ellipse(80, by, 36);
-    p.line(68, by, 92, by);
+    p.ellipse(panel.minusX, panel.buttonY, 36);
+    p.line(panel.minusX - 12, panel.buttonY, panel.minusX + 12, panel.buttonY);
 
     // Mass label
     p.noStroke();
-    p.fill(255, 255, 255, 160);
+    p.fill(36, 54, 88, 220);
     p.textAlign(p.CENTER, p.CENTER);
-    p.textSize(11);
-    p.text("mass: " + nextMass.toFixed(0), 55, by - 26);
+    p.textSize(12);
+    p.text("mass: " + nextMass.toFixed(0), panel.labelX, panel.labelY);
   }
 }

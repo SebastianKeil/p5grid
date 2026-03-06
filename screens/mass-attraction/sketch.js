@@ -13,6 +13,9 @@ export default function (p) {
   const MIN_MASS = 6;
   const MAX_MASS = 22;
   const FORCE_LINE_RANGE = 250;  // max distance for visible force lines
+  const PANEL_W = 280;
+  const PANEL_H = 72;
+  const PANEL_BG_ALPHA = 80; // 0..255 (lower = more transparent)
 
   // ---- Particle (unit-mass mover) ----
   class Particle {
@@ -150,16 +153,44 @@ export default function (p) {
   let nextMass = 12;
   let particleSlider;
 
+  function getControlPanelLayout() {
+    const panelX = p.width * 0.5 - PANEL_W * 0.5;
+    const panelY = p.height - PANEL_H - 14;
+    const buttonY = panelY + 44;
+    const sliderW = 128;
+    const sliderX = panelX + PANEL_W - sliderW - 18;
+    const sliderY = panelY + PANEL_H - 30;
+    return {
+      panelX,
+      panelY,
+      buttonY,
+      plusX: panelX + 54,
+      minusX: panelX + 104,
+      labelX: panelX + 79,
+      labelY: panelY + 16,
+      sliderX,
+      sliderY,
+      sliderLabelX: sliderX + sliderW * 0.5,
+      sliderLabelY: panelY + 16,
+    };
+  }
+
+  function placeControls() {
+    if (!particleSlider) return;
+    const panel = getControlPanelLayout();
+    particleSlider.position(panel.sliderX, panel.sliderY);
+  }
+
   // ---- Setup ----
   p.setup = function () {
     const w = p.select("#sketch-container").elt.clientWidth;
     const h = p.select("#sketch-container").elt.clientHeight;
     p.createCanvas(w, h);
 
-    // Particle count slider (bottom-right)
+    // Particle count slider (inside bottom-center control panel)
     particleSlider = p.createSlider(1, 30, 5, 1);
-    particleSlider.position(w - 165, h - 30);
-    particleSlider.style("width", "110px");
+    particleSlider.style("width", "128px");
+    placeControls();
 
     // Start with 3 attractors vertically aligned with slight offset, different sizes
     attractors.push(new Attractor(w * 0.45, h * 0.20, 8));
@@ -219,23 +250,26 @@ export default function (p) {
 
     // Slider labels
     p.noStroke();
-    p.fill(255, 255, 255, 90);
+    p.fill(36, 54, 88, 220);
     p.textSize(10);
-    p.textAlign(p.RIGHT, p.CENTER);
-    p.text("particles", p.width - 170, p.height - 22);
+    const panel = getControlPanelLayout();
+    p.textAlign(p.CENTER, p.CENTER);
+    p.text("particles", panel.sliderLabelX, panel.sliderLabelY);
   };
 
   // ---- Click to place attractor ----
-  p.mousePressed = function () {
+  p.mousePressed = function (event) {
+    if (event && event.target !== p.canvas) return;
     const mouse = p.createVector(p.mouseX, p.mouseY);
+    const panel = getControlPanelLayout();
 
-    // + button (bottom-left)
-    if (p5.Vector.dist(mouse, p.createVector(30, p.height - 30)) < 22) {
+    // + button
+    if (p5.Vector.dist(mouse, p.createVector(panel.plusX, panel.buttonY)) < 22) {
       nextMass = p.min(nextMass + 2, MAX_MASS);
       return;
     }
-    // − button (bottom-left)
-    if (p5.Vector.dist(mouse, p.createVector(80, p.height - 30)) < 22) {
+    // − button
+    if (p5.Vector.dist(mouse, p.createVector(panel.minusX, panel.buttonY)) < 22) {
       nextMass = p.max(nextMass - 2, MIN_MASS);
       return;
     }
@@ -259,27 +293,39 @@ export default function (p) {
     p.ellipse(p.mouseX, p.mouseY, r * 2);
   }
 
-  // ---- +/- buttons (bottom-left) ----
+  // ---- +/- buttons inside centered control panel ----
   function showButtons() {
-    const by = p.height - 30;
+    const panel = getControlPanelLayout();
+
+    p.noStroke();
+    p.fill(242, 246, 255, PANEL_BG_ALPHA);
+    p.rect(panel.panelX, panel.panelY, PANEL_W, PANEL_H, 10);
 
     // + button
     p.noFill();
-    p.stroke(255, 255, 255, 140);
+    p.stroke(38, 54, 84, 190);
     p.strokeWeight(2);
-    p.ellipse(30, by, 36);
-    p.line(18, by, 42, by);
-    p.line(30, by - 12, 30, by + 12);
+    p.ellipse(panel.plusX, panel.buttonY, 36);
+    p.line(panel.plusX - 12, panel.buttonY, panel.plusX + 12, panel.buttonY);
+    p.line(panel.plusX, panel.buttonY - 12, panel.plusX, panel.buttonY + 12);
 
     // − button
-    p.ellipse(80, by, 36);
-    p.line(68, by, 92, by);
+    p.ellipse(panel.minusX, panel.buttonY, 36);
+    p.line(panel.minusX - 12, panel.buttonY, panel.minusX + 12, panel.buttonY);
 
     // Mass label
     p.noStroke();
-    p.fill(255, 255, 255, 160);
+    p.fill(36, 54, 88, 220);
     p.textAlign(p.CENTER, p.CENTER);
     p.textSize(11);
-    p.text("mass: " + nextMass.toFixed(0), 55, by - 26);
+    p.text("mass: " + nextMass.toFixed(0), panel.labelX, panel.labelY);
   }
+
+  p.windowResized = function () {
+    const w = p.select("#sketch-container").elt.clientWidth;
+    const h = p.select("#sketch-container").elt.clientHeight;
+    p.resizeCanvas(w, h);
+    placeControls();
+    initSpawnPoint();
+  };
 }

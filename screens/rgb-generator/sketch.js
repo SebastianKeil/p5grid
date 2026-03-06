@@ -147,7 +147,7 @@ export default function (p) {
     const boxH = ts * 4.2;
 
     drawColourBox(
-      mx + cw * 0.05, my + ch * 0.06,
+      mx + cw * 0.05, horizonY - boxH - ch * 0.02,
       boxW, boxH, ts,
       c2, g, b, r
     );
@@ -200,7 +200,8 @@ export default function (p) {
   }
 
   // ---- Click → new palette ----
-  p.mousePressed = function () {
+  p.mousePressed = function (event) {
+    if (event && event.target !== p.canvas) return;
     if (p.mouseX < 0 || p.mouseX > p.width || p.mouseY < 0 || p.mouseY > p.height) return;
     randomisePalette();
   };

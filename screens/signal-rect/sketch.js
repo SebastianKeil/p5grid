@@ -14,6 +14,14 @@ export default function (p) {
   let waveformType = "square";
   let waveformBtns = [];
   const WAVEFORMS = ["square", "sawtooth", "triangle"];
+  let baseBtnCSS = "";
+  let activeBtnCSS = "";
+
+  const PANEL_W = 330;
+  const PANEL_H = 114;
+  const PANEL_BG_ALPHA = 80; // 0..255 (lower = more transparent)
+  const BTN_W = 92;
+  const BTN_GAP = 8;
 
   // ---- Palette ----
   const COL_CORAL = [255, 107, 138];   // negative coefficient / full wave
@@ -24,6 +32,43 @@ export default function (p) {
   let waveTop, waveBottom, waveMidX;
   let waveFrameLeft, waveFrameRight;
   let maxWaveLen;
+
+  function updateLayoutMetrics(w, h) {
+    circlesCX = w / 2;
+    circlesCY = h * 0.25;
+    waveTop = h * 0.50;
+    waveBottom = h - 15;
+    waveMidX = w / 2;
+    waveFrameLeft = 40;
+    waveFrameRight = w - 40;
+    maxWaveLen = waveBottom - waveTop;
+  }
+
+  function getControlPanelLayout() {
+    const panelX = p.width * 0.5 - PANEL_W * 0.5;
+    const panelY = p.height - PANEL_H - 14;
+    const totalBtnW = WAVEFORMS.length * BTN_W + (WAVEFORMS.length - 1) * BTN_GAP;
+    const btnStartX = panelX + (PANEL_W - totalBtnW) * 0.5;
+    return {
+      panelX,
+      panelY,
+      btnStartX,
+      btnY: panelY + 10,
+      sliderX: panelX + 95,
+      speedY: panelY + 56,
+      harmonicsY: panelY + 82,
+      labelX: panelX + 88,
+    };
+  }
+
+  function placeControls() {
+    const layout = getControlPanelLayout();
+    waveformBtns.forEach((btn, idx) => {
+      btn.position(layout.btnStartX + idx * (BTN_W + BTN_GAP), layout.btnY);
+    });
+    if (speedSlider) speedSlider.position(layout.sliderX, layout.speedY);
+    if (harmonicsSlider) harmonicsSlider.position(layout.sliderX, layout.harmonicsY);
+  }
 
   // ========== Fourier coefficients per waveform ==========
   function getHarmonic(type, i) {
@@ -71,20 +116,19 @@ export default function (p) {
   }
 
   // ========== Spectrum bar chart ==========
-  function drawSpectrum(harmonics) {
-    const barW = 10;
-    const barGap = 4;
-    const maxBarH = 55;
+  function drawSpectrum(harmonics, panel) {
+    const barW = 6;
+    const barGap = 2;
+    const maxBarH = 28;
     // Reference amplitude for normalisation (fundamental of square wave = largest possible)
     const refAmp = (4 / Math.PI) * 100;
 
-    // Position: top-right area
     const totalW = harmonics * (barW + barGap) - barGap;
-    const baseX = p.width - 20 - totalW;
-    const baseY = circlesCY;  // zero line aligns with epicircle centre
+    const baseX = panel.panelX + PANEL_W - totalW - 12;
+    const baseY = panel.panelY + PANEL_H - 18;
 
     // Zero line
-    p.stroke(255, 255, 255, 25);
+    p.stroke(36, 54, 88, 70);
     p.strokeWeight(1);
     p.line(baseX - 6, baseY, baseX + totalW + 6, baseY);
 
@@ -106,17 +150,17 @@ export default function (p) {
       }
 
       // Harmonic number label
-      p.fill(255, 255, 255, 60);
-      p.textSize(8);
+      p.fill(36, 54, 88, 135);
+      p.textSize(7);
       p.textAlign(p.CENTER, p.TOP);
-      p.text(harm.n, bx + barW / 2, baseY + maxBarH + 4);
+      p.text(harm.n, bx + barW / 2, baseY + 4);
     }
 
     // Axis label
-    p.fill(255, 255, 255, 45);
-    p.textSize(9);
+    p.fill(36, 54, 88, 170);
+    p.textSize(8);
     p.textAlign(p.CENTER, p.BOTTOM);
-    p.text("harmonics", baseX + totalW / 2, baseY + maxBarH + 18);
+    p.text("spectrum", baseX + totalW / 2, baseY - maxBarH - 4);
   }
 
   // ========== Setup ==========
@@ -126,32 +170,21 @@ export default function (p) {
     p.createCanvas(w, h);
 
     // Layout zones
-    circlesCX      = w / 2;
-    circlesCY      = h * 0.25;
-    waveTop        = h * 0.50;
-    waveBottom     = h - 15;
-    waveMidX       = w / 2;
-    waveFrameLeft  = 40;
-    waveFrameRight = w - 40;
-    maxWaveLen     = waveBottom - waveTop;
+    updateLayoutMetrics(w, h);
 
-    // ---- Waveform selector (centred at top) ----
-    const btnW = 68;
-    const btnGap = 6;
-    const totalBtnW = WAVEFORMS.length * btnW + (WAVEFORMS.length - 1) * btnGap;
-    const btnStartX = (w - totalBtnW) / 2;
-
-    const baseBtnCSS =
-      "background:none;border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.6);" +
-      "padding:4px 0;width:" + btnW + "px;border-radius:14px;font-size:11px;cursor:pointer;" +
+    const baseBtnCSSLocal =
+      "background:rgba(255,255,255,0.14);border:1px solid rgba(36,54,88,0.45);color:rgba(36,54,88,0.9);" +
+      "padding:4px 0;width:" + BTN_W + "px;border-radius:14px;font-size:11px;cursor:pointer;" +
       "font-family:inherit;text-align:center;transition:all .15s;";
-    const activeBtnCSS =
-      baseBtnCSS +
-      "border-color:rgba(255,255,255,0.8);color:#fff;background:rgba(255,255,255,0.1);";
+    const activeBtnCSSLocal =
+      baseBtnCSSLocal +
+      "border-color:rgba(36,54,88,0.95);color:rgba(22,35,60,1);background:rgba(255,255,255,0.52);";
+    baseBtnCSS = baseBtnCSSLocal;
+    activeBtnCSS = activeBtnCSSLocal;
 
     WAVEFORMS.forEach((type, idx) => {
       const btn = p.createButton(type);
-      btn.position(btnStartX + idx * (btnW + btnGap), 12);
+      btn.position(0, 0);
       btn.style(type === waveformType ? activeBtnCSS : baseBtnCSS);
       btn.mousePressed(() => {
         waveformType = type;
@@ -163,17 +196,16 @@ export default function (p) {
       waveformBtns.push(btn);
     });
 
-    // ---- Sliders (bottom-right, stacked) ----
-    const sliderW = "110px";
-    const sx = w - 165;
+    // ---- Sliders (inside control panel) ----
+    const sliderW = "128px";
 
     speedSlider = p.createSlider(1, 100, 51);
-    speedSlider.position(sx, h - 55);
     speedSlider.style("width", sliderW);
 
     harmonicsSlider = p.createSlider(1, 10, 3);
-    harmonicsSlider.position(sx, h - 30);
     harmonicsSlider.style("width", sliderW);
+
+    placeControls();
   };
 
   // ========== Draw ==========
@@ -233,9 +265,6 @@ export default function (p) {
     wave.unshift(x);
     p.pop();
 
-    // ---------- Spectrum bar chart (top-right) ----------
-    drawSpectrum(harmonics);
-
     // ---------- Divider ----------
     p.stroke(255, 255, 255, 35);
     p.strokeWeight(1.5);
@@ -294,19 +323,33 @@ export default function (p) {
 
     p.pop();
 
+    // ---------- Controls panel ----------
+    const panel = getControlPanelLayout();
+    p.noStroke();
+    p.fill(242, 246, 255, PANEL_BG_ALPHA);
+    p.rect(panel.panelX, panel.panelY, PANEL_W, PANEL_H, 10);
+    drawSpectrum(harmonics, panel);
+
     // ---------- Slider labels ----------
     p.noStroke();
-    p.fill(255, 255, 255, 90);
+    p.fill(36, 54, 88, 220);
     p.textSize(10);
     p.textAlign(p.RIGHT, p.CENTER);
-    const lx = p.width - 170;
-    p.text("speed",     lx, p.height - 47);
-    p.text("harmonics", lx, p.height - 22);
+    p.text("speed", panel.labelX, panel.speedY + 8);
+    p.text("harmonics", panel.labelX, panel.harmonicsY + 8);
 
     // ---------- Trim arrays ----------
     if (groundwave.length >= maxWaveLen) groundwave.pop();
     if (wave.length >= maxWaveLen)       wave.pop();
 
     time -= 1 / (101 - speedSlider.value());
+  };
+
+  p.windowResized = function () {
+    const w = p.select("#sketch-container").elt.clientWidth;
+    const h = p.select("#sketch-container").elt.clientHeight;
+    p.resizeCanvas(w, h);
+    updateLayoutMetrics(w, h);
+    placeControls();
   };
 }

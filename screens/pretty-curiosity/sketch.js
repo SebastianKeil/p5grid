@@ -15,6 +15,7 @@ export default function(p) {
   let shadows = [];
   let cnv;         // p5 canvas wrapper
   let parentEl;    // the sketch-container element
+  let hintEl;      // overlay hint above navbar
 
   let color1, color2, color3, color4, color5, color6;
 
@@ -27,6 +28,7 @@ export default function(p) {
   let targetRotY = -20;
   let currentRotX = 15;
   let currentRotY = -20;
+  let showDots = true;
 
   function computeRings() {
     // 16x16 centered inside 24x24 → starts at 4, ends at 20
@@ -106,6 +108,29 @@ export default function(p) {
     }
   }
 
+  function redrawBoard() {
+    p.background(255);
+    p.noStroke();
+    if (showDots) draw_shadows();
+    draw_checkerboard();
+  }
+
+  function createHint() {
+    hintEl = document.createElement("div");
+    hintEl.textContent = "tap / click to toggle the illusion";
+    hintEl.style.position = "absolute";
+    hintEl.style.left = "50%";
+    hintEl.style.bottom = "10px";
+    hintEl.style.transform = "translateX(-50%)";
+    hintEl.style.pointerEvents = "none";
+    hintEl.style.color = "rgba(255, 255, 255, 0.75)";
+    hintEl.style.fontSize = "12px";
+    hintEl.style.letterSpacing = "0.02em";
+    hintEl.style.textAlign = "center";
+    hintEl.style.zIndex = "3";
+    parentEl.appendChild(hintEl);
+  }
+
   function updateTransform() {
     // Smooth interpolation toward target
     currentRotX += (targetRotX - currentRotX) * 0.08;
@@ -165,10 +190,8 @@ export default function(p) {
     fill_shadows();
 
     // Draw the static checkerboard once
-    p.background(255);
-    p.noStroke();
-    draw_shadows();
-    draw_checkerboard();
+    redrawBoard();
+    createHint();
 
     // Attach mouse listeners to the parent container
     parentEl.addEventListener("mousemove", onMouseMove);
@@ -186,12 +209,22 @@ export default function(p) {
     updateTransform();
   };
 
+  p.mousePressed = function (event) {
+    if (event && event.target !== p.canvas) return;
+    if (p.mouseX < 0 || p.mouseX > p.width || p.mouseY < 0 || p.mouseY > p.height) return;
+    showDots = !showDots;
+    redrawBoard();
+  };
+
   // Clean up event listeners when sketch is removed
   p.remove = (function(originalRemove) {
     return function() {
       if (parentEl) {
         parentEl.removeEventListener("mousemove", onMouseMove);
         parentEl.removeEventListener("mouseleave", onMouseLeave);
+      }
+      if (hintEl && hintEl.parentNode) {
+        hintEl.parentNode.removeChild(hintEl);
       }
       originalRemove.call(p);
     };
