@@ -119,7 +119,6 @@ export default function (p) {
         render.drawFoodAndFish(p, foods, fishes);
       }
     }
-    if (typeof render.drawHint === "function") render.drawHint(p);
   };
 
   p.mousePressed = function (event) {
