@@ -7,6 +7,50 @@ import {
   EAT_POP_HEAD_OFFSET_FACTOR,
 } from "./constants.js";
 
+let canUseCanvasBlur = null;
+
+function supportsFishCanvasBlur(p) {
+  if (canUseCanvasBlur != null) return canUseCanvasBlur;
+
+  // iOS Safari often exposes context.filter but fails to render blur reliably.
+  const ua = typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
+  const hasTouchWindow = typeof window !== "undefined" && "ontouchend" in window;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (ua.includes("Mac") && hasTouchWindow);
+  const hasFilterProperty = p && p.drawingContext && "filter" in p.drawingContext;
+  canUseCanvasBlur = Boolean(hasFilterProperty && !isIOS);
+  return canUseCanvasBlur;
+}
+
+function drawFishBodyPass(p, oneFish, sizeBoost, alphaScale) {
+  const koiCol = p.color(255, 80, 0);
+  const drawSegCount = Math.min(oneFish.segments.length, 8);
+
+  for (let i = 0; i < drawSegCount; i++) {
+    const seg = oneFish.segments[i];
+    const t = i / Math.max(1, drawSegCount - 1);
+    let d;
+    if (i === 0) d = HEAD_SIZE;
+    else if (i <= 4) {
+      const tt = (i - 1) / 3;
+      d = p.lerp(HEAD_SIZE, SHOULDER_SIZE, tt);
+    } else {
+      const tt = (i - 5) / 2;
+      d = p.lerp(SHOULDER_SIZE, 20, tt);
+    }
+    const jitter = Math.sin(p.frameCount * 0.07 + i * 0.63) * 2.1;
+    d += jitter + sizeBoost;
+
+    const alpha = (i < 3 ? 185 : 145 - t * 50) * alphaScale;
+    p.fill(p.red(koiCol), p.green(koiCol), p.blue(koiCol), alpha);
+    p.ellipse(seg.x, seg.y, d, d * 0.72);
+  }
+
+  const eyeX = oneFish.segments[0].x + Math.cos(oneFish.heading) * 7;
+  const eyeY = oneFish.segments[0].y + Math.sin(oneFish.heading) * 7;
+  p.fill(255, 230 * alphaScale);
+  p.circle(eyeX, eyeY, 3.2);
+}
+
 function getEatPopCenter(oneFish) {
   const head = oneFish.segments[0];
   const offset = HEAD_SIZE * EAT_POP_HEAD_OFFSET_FACTOR;
@@ -28,39 +72,22 @@ export function drawFoodAndFish(p, foods, fishes) {
   }
 
   if (fishes.length > 0) {
-    // Soft fish body rendering pass.
-    p.drawingContext.filter = "blur(" + FISH_BLUR_PX + "px)";
-    for (let f = 0; f < fishes.length; f++) {
-      const oneFish = fishes[f];
-      const koiCol = p.color(255, 80, 0);
-      const drawSegCount = Math.min(oneFish.segments.length, 8);
-
-      for (let i = 0; i < drawSegCount; i++) {
-        const seg = oneFish.segments[i];
-        const t = i / Math.max(1, drawSegCount - 1);
-        let d;
-        if (i === 0) d = HEAD_SIZE;
-        else if (i <= 4) {
-          const tt = (i - 1) / 3;
-          d = p.lerp(HEAD_SIZE, SHOULDER_SIZE, tt);
-        } else {
-          const tt = (i - 5) / 2;
-          d = p.lerp(SHOULDER_SIZE, 20, tt);
-        }
-        const jitter = Math.sin(p.frameCount * 0.07 + i * 0.63) * 2.1;
-        d += jitter;
-
-        const alpha = i < 3 ? 185 : 145 - t * 50;
-        p.fill(p.red(koiCol), p.green(koiCol), p.blue(koiCol), alpha);
-        p.ellipse(seg.x, seg.y, d, d * 0.72);
+    if (supportsFishCanvasBlur(p)) {
+      // Preferred path on browsers with reliable canvas filter support.
+      p.drawingContext.filter = "blur(" + FISH_BLUR_PX + "px)";
+      for (let f = 0; f < fishes.length; f++) {
+        drawFishBodyPass(p, fishes[f], 0, 1);
       }
-
-      const eyeX = oneFish.segments[0].x + Math.cos(oneFish.heading) * 7;
-      const eyeY = oneFish.segments[0].y + Math.sin(oneFish.heading) * 7;
-      p.fill(255, 230);
-      p.circle(eyeX, eyeY, 3.2);
+      p.drawingContext.filter = "none";
+    } else {
+      // iOS fallback: approximate blur with layered translucent body passes.
+      for (let f = 0; f < fishes.length; f++) {
+        const oneFish = fishes[f];
+        drawFishBodyPass(p, oneFish, 10, 0.2);
+        drawFishBodyPass(p, oneFish, 6, 0.3);
+        drawFishBodyPass(p, oneFish, 0, 0.55);
+      }
     }
-    p.drawingContext.filter = "none";
 
     // Crisp pre-eat pop rendered after blur, so it stays sharp.
     for (let f = 0; f < fishes.length; f++) {
