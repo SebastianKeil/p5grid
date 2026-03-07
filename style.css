@@ -70,7 +70,8 @@ body {
   touch-action: manipulation;
 }
 
-#sketch-container canvas.ripple-tank-blur-layer,
+#sketch-container canvas.ripple-tank-wave-layer,
+#sketch-container canvas.ripple-tank-fish-layer,
 #sketch-container canvas.ripple-tank-top-layer {
   position: absolute;
   inset: 0;
@@ -78,15 +79,22 @@ body {
   height: 100% !important;
 }
 
-#sketch-container canvas.ripple-tank-blur-layer {
+#sketch-container canvas.ripple-tank-wave-layer {
   z-index: 1;
   pointer-events: none;
   transform: translateZ(0);
   will-change: filter;
 }
 
-#sketch-container canvas.ripple-tank-top-layer {
+#sketch-container canvas.ripple-tank-fish-layer {
   z-index: 2;
+  pointer-events: none;
+  transform: translateZ(0);
+  will-change: filter;
+}
+
+#sketch-container canvas.ripple-tank-top-layer {
+  z-index: 3;
   pointer-events: auto;
   background: transparent;
 }

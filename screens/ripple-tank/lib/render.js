@@ -88,6 +88,11 @@ export function drawOverlayFoodAndPop(p, foods, fishes) {
   p.pop();
 }
 
+// Backward-compatible surface for older sketch integrations.
+export function drawFoodAndFish(p, foods, fishes) {
+  drawOverlayFoodAndPop(p, foods, fishes);
+}
+
 export function drawHint(p) {
   p.push();
   p.noStroke();
