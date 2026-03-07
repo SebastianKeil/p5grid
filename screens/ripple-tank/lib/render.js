@@ -1,21 +1,12 @@
 import {
   FOOD_FINAL_SIZE,
-  FISH_BLUR_PX,
   HEAD_SIZE,
   SHOULDER_SIZE,
   FISH_EAT_PAUSE_MS,
   EAT_POP_HEAD_OFFSET_FACTOR,
 } from "./constants.js";
 
-function drawFishBodyPass(
-  p,
-  oneFish,
-  sizeBoost,
-  alphaScale,
-  offsetX = 0,
-  offsetY = 0,
-  includeEye = true
-) {
+function drawFishBodyPass(p, target, oneFish, sizeBoost, alphaScale) {
   const koiCol = p.color(255, 80, 0);
   const drawSegCount = Math.min(oneFish.segments.length, 8);
 
@@ -35,15 +26,14 @@ function drawFishBodyPass(
     d += jitter + sizeBoost;
 
     const alpha = (i < 3 ? 185 : 145 - t * 50) * alphaScale;
-    p.fill(p.red(koiCol), p.green(koiCol), p.blue(koiCol), alpha);
-    p.ellipse(seg.x + offsetX, seg.y + offsetY, d, d * 0.72);
+    target.fill(p.red(koiCol), p.green(koiCol), p.blue(koiCol), alpha);
+    target.ellipse(seg.x, seg.y, d, d * 0.72);
   }
 
-  if (!includeEye) return;
   const eyeX = oneFish.segments[0].x + Math.cos(oneFish.heading) * 7;
   const eyeY = oneFish.segments[0].y + Math.sin(oneFish.heading) * 7;
-  p.fill(255, 230 * alphaScale);
-  p.circle(eyeX + offsetX, eyeY + offsetY, 3.2);
+  target.fill(255, 230 * alphaScale);
+  target.circle(eyeX, eyeY, 3.2);
 }
 
 function getEatPopCenter(oneFish) {
@@ -55,11 +45,21 @@ function getEatPopCenter(oneFish) {
   };
 }
 
-export function drawFoodAndFish(p, foods, fishes) {
+export function drawFishBodies(p, target, fishes) {
+  if (fishes.length === 0) return;
+  target.push();
+  target.noStroke();
+  for (let f = 0; f < fishes.length; f++) {
+    drawFishBodyPass(p, target, fishes[f], 0, 1);
+  }
+  target.pop();
+}
+
+export function drawOverlayFoodAndPop(p, foods, fishes) {
   p.push();
   p.noStroke();
 
-  // Draw food pellets first so fish layers render above them.
+  // Draw food pellets on crisp top layer.
   for (let i = 0; i < foods.length; i++) {
     const food = foods[i];
     p.fill(255, 230, 120, 200);
@@ -67,30 +67,7 @@ export function drawFoodAndFish(p, foods, fishes) {
   }
 
   if (fishes.length > 0) {
-    // Filter blur is unreliable on iOS; use geometry-based softness everywhere.
-    const halo = Math.max(3, FISH_BLUR_PX * 0.28);
-    const offsets = [
-      [-halo, 0],
-      [halo, 0],
-      [0, -halo],
-      [0, halo],
-      [-halo * 0.7, -halo * 0.7],
-      [halo * 0.7, -halo * 0.7],
-      [-halo * 0.7, halo * 0.7],
-      [halo * 0.7, halo * 0.7],
-    ];
-
-    for (let f = 0; f < fishes.length; f++) {
-      const oneFish = fishes[f];
-      for (let i = 0; i < offsets.length; i++) {
-        const [ox, oy] = offsets[i];
-        drawFishBodyPass(p, oneFish, halo * 0.45, 0.11, ox, oy, false);
-      }
-      drawFishBodyPass(p, oneFish, halo * 0.22, 0.28, 0, 0, false);
-      drawFishBodyPass(p, oneFish, 0, 0.82, 0, 0, true);
-    }
-
-    // Crisp pre-eat pop rendered after blur, so it stays sharp.
+    // Crisp pre-eat pop rendered on top layer.
     for (let f = 0; f < fishes.length; f++) {
       const oneFish = fishes[f];
       if (oneFish.mode !== "preEat") continue;

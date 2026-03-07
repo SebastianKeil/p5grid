@@ -122,16 +122,16 @@ export function createWaveSim(p) {
     nextHeightField = swap;
   }
 
-  function renderField() {
-    p.noStroke();
+  function renderField(target = p) {
+    target.noStroke();
     for (let y = 0; y < simRows; y++) {
       for (let x = 0; x < simCols; x++) {
         const h = heightField[idx(x, y)];
         const alpha = p.constrain(Math.abs(h) * 380, 0, 170);
         if (alpha < 2) continue;
-        if (h >= 0) p.fill(120, 210, 255, alpha);
-        else p.fill(170, 140, 255, alpha);
-        p.rect(x * cellW, y * cellH, cellW + 0.5, cellH + 0.5);
+        if (h >= 0) target.fill(120, 210, 255, alpha);
+        else target.fill(170, 140, 255, alpha);
+        target.rect(x * cellW, y * cellH, cellW + 0.5, cellH + 0.5);
       }
     }
   }
