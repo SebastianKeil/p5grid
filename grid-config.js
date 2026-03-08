@@ -11,6 +11,7 @@ const GRID_CONFIG = {
     { col: 0, row: 1, slug: "signal-rect",      title: "Signal Rect",      type: "p5" },
     { col: 1, row: 1, slug: "rgb-generator",   title: "RGB Generator",    type: "p5" },
     { col: 2, row: 1, slug: "lidar-viewer",    title: "LiDAR Viewer",     type: "p5" },
+    { col: 0, row: 2, slug: "leave-a-message",  title: "Leave a Message",  type: "html" },
     { col: 1, row: 2, slug: "ripple-tank",     title: "Ripple Tank",      type: "p5" },
     { col: 2, row: 2, slug: "pretty-curiosity", title: "Pretty Curiosity", type: "p5" },
   ]

@@ -1,0 +1,136 @@
+<div class="message-screen">
+  <p class="message-screen-text">
+    I am not sure what to put here yet, so feel free to leave me a message in the box.
+  </p>
+
+  <form
+    id="contactForm"
+    class="message-screen-form"
+    action="https://api.web3forms.com/submit"
+    method="POST"
+  >
+    <input
+      type="hidden"
+      name="access_key"
+      value="5f7eb640-6cc6-4911-9365-80c8c3cfdca0"
+    >
+    <input type="checkbox" name="botcheck" style="display: none;">
+    <textarea
+      class="message-screen-input message-screen-textarea"
+      name="message"
+      placeholder="Type your message..."
+      required
+      maxlength="300"
+    ></textarea>
+    <button class="message-screen-button" type="submit">Send Message</button>
+
+    <p id="resultMessage" class="message-screen-feedback" style="display: none;" aria-live="polite"></p>
+  </form>
+</div>
+
+<style>
+  .message-screen {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem;
+    color: #f2f2f2;
+    text-align: center;
+  }
+
+  .message-screen-text {
+    max-width: 620px;
+    font-size: clamp(1rem, 2.5vw, 1.35rem);
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  .message-screen-form {
+    width: min(92vw, 620px);
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .message-screen-input {
+    flex: 1;
+    min-width: 0;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.25);
+    color: #fff;
+    padding: 0.75rem 0.9rem;
+    font-size: 1rem;
+  }
+
+  .message-screen-input::placeholder {
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .message-screen-textarea {
+    min-height: 130px;
+    resize: vertical;
+    font-family: inherit;
+  }
+
+  .message-screen-button {
+    border: 1px solid rgba(255, 255, 255, 0.36);
+    border-radius: 8px;
+    background: rgba(235, 130, 203, 0.16);
+    color: #fff;
+    font-size: 1rem;
+    padding: 0.75rem 1.1rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .message-screen-button:hover {
+    background: rgba(255, 255, 255, 0.26);
+  }
+
+  .message-screen-feedback {
+    min-height: 1.2rem;
+    font-size: 0.95rem;
+    color: #7ff0a6;
+    text-align: left;
+  }
+</style>
+
+<script>
+  (function () {
+    const form = document.getElementById("contactForm");
+    const result = document.getElementById("resultMessage");
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const formData = new FormData(form);
+
+      fetch(form.action, {
+        method: "POST",
+        body: formData,
+        headers: { Accept: "application/json" }
+      })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("Submit failed");
+          }
+
+          result.textContent = "Message sent!";
+          result.style.display = "block";
+          form.reset();
+
+          setTimeout(function () {
+            result.style.display = "none";
+          }, 3000);
+        })
+        .catch(function () {
+          result.textContent = "Something went wrong. Please try again.";
+          result.style.display = "block";
+        });
+    });
+  })();
+</script>
