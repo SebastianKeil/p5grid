@@ -2,7 +2,6 @@ import {
   EAT_IMPULSE_STRENGTH,
   IMPULSE_RADIUS,
   MAX_FISH,
-  MAX_FOOD,
   FISH_BASE_SPEED,
   FISH_SPEED_LERP,
   FISH_HEADING_LERP,
@@ -24,7 +23,11 @@ import {
   SHOULDER_SIZE,
 } from "./constants.js";
 
-export function createFishSystem(p, addImpulseByPixel) {
+export function createFishSystem(p, addImpulseByPixel, options = {}) {
+  const onTargetEaten =
+    options && typeof options.onTargetEaten === "function"
+      ? options.onTargetEaten
+      : null;
   let fishes = [];
   let pendingImpulses = [];
 
@@ -315,6 +318,7 @@ export function createFishSystem(p, addImpulseByPixel) {
 
     if (oneFish.mode === "preEat") {
       if (p.millis() >= oneFish.pauseUntilMs) {
+        if (onTargetEaten) onTargetEaten(target);
         const eatIdx = foods.findIndex((food) => food.id === target.id);
         if (eatIdx >= 0) foods.splice(eatIdx, 1);
         const popCenter = getEatPopCenter(oneFish);
@@ -349,7 +353,6 @@ export function createFishSystem(p, addImpulseByPixel) {
   function update(foods) {
     processPendingImpulses();
     if (fishes.length > MAX_FISH) fishes.length = MAX_FISH;
-    if (foods.length > MAX_FOOD) foods.splice(0, foods.length - MAX_FOOD);
 
     const assignedFoodIds = new Set();
     for (let i = 0; i < fishes.length; i++) {

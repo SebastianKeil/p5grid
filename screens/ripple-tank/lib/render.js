@@ -4,6 +4,10 @@ import {
   SHOULDER_SIZE,
   FISH_EAT_PAUSE_MS,
   EAT_POP_HEAD_OFFSET_FACTOR,
+  BUG_BODY_SIZE,
+  BUG_WING_ALPHA,
+  BUG_WING_OFFSET,
+  BUG_WING_SIZE,
 } from "./constants.js";
 
 function drawFishBodyPass(p, target, oneFish, sizeBoost, alphaScale) {
@@ -55,9 +59,32 @@ export function drawFishBodies(p, target, fishes) {
   target.pop();
 }
 
-export function drawOverlayFoodAndPop(p, foods, fishes) {
+export function drawBugs(p, bugs) {
+  if (!bugs || bugs.length === 0) return;
   p.push();
   p.noStroke();
+  for (let i = 0; i < bugs.length; i++) {
+    const oneBug = bugs[i];
+    const nx = -Math.sin(oneBug.heading);
+    const ny = Math.cos(oneBug.heading);
+    const wx = nx * BUG_WING_OFFSET;
+    const wy = ny * BUG_WING_OFFSET;
+
+    p.fill(255, BUG_WING_ALPHA);
+    p.circle(oneBug.x + wx, oneBug.y + wy, BUG_WING_SIZE);
+    p.circle(oneBug.x - wx, oneBug.y - wy, BUG_WING_SIZE);
+
+    p.fill(18, 18, 18, 240);
+    p.circle(oneBug.x, oneBug.y, BUG_BODY_SIZE);
+  }
+  p.pop();
+}
+
+export function drawOverlayFoodAndPop(p, foods, fishes, bugs) {
+  p.push();
+  p.noStroke();
+
+  drawBugs(p, bugs);
 
   // Draw food pellets on crisp top layer.
   for (let i = 0; i < foods.length; i++) {

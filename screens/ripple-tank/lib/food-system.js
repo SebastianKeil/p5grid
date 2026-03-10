@@ -43,6 +43,11 @@ export function createFoodSystem(p, addImpulseByPixel) {
     return food;
   }
 
+  function removeFoodById(id) {
+    const idx = foods.findIndex((food) => food.id === id);
+    if (idx >= 0) foods.splice(idx, 1);
+  }
+
   function updateByWave(sampleGradientByPixel) {
     const r = FOOD_FINAL_SIZE * 0.5;
     for (let i = 0; i < foods.length; i++) {
@@ -90,6 +95,7 @@ export function createFoodSystem(p, addImpulseByPixel) {
     getFoods,
     reset,
     placeFood,
+    removeFoodById,
     updateByWave,
   };
 }

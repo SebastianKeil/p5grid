@@ -3,18 +3,31 @@
 
 import {
   FISH_LAYER_CSS_BLUR_PX,
+  FOOD_LAND_IMPULSE_RADIUS,
+  FOOD_LAND_IMPULSE_STRENGTH,
   SIM_STEPS_PER_FRAME,
   WAVE_LAYER_CSS_BLUR_PX,
 } from "./lib/constants.js";
 import { createWaveSim } from "./lib/wave-sim.js";
 import { createFoodSystem } from "./lib/food-system.js";
 import { createFishSystem } from "./lib/fish-system.js";
+import { createBugSystem } from "./lib/bug-system.js";
 import * as render from "./lib/render.js";
 
 export default function (p) {
   const waveSim = createWaveSim(p);
   const foodSystem = createFoodSystem(p, waveSim.addImpulseByPixel);
-  const fishSystem = createFishSystem(p, waveSim.addImpulseByPixel);
+  const bugSystem = createBugSystem(p);
+  const fishSystem = createFishSystem(p, waveSim.addImpulseByPixel, {
+    onTargetEaten(target) {
+      if (!target) return;
+      if (target.kind === "bug") {
+        bugSystem.removeBugById(target.id);
+      } else {
+        foodSystem.removeFoodById(target.id);
+      }
+    },
+  });
   let waveLayer = null;
   let fishLayer = null;
 
@@ -33,12 +46,17 @@ export default function (p) {
     waveSim.clearFields();
     foodSystem.reset();
     fishSystem.reset();
+    bugSystem.reset();
     simAccumulator = 0;
   }
 
   function placeFood(px, py) {
     const food = foodSystem.placeFood(px, py);
-    if (food) fishSystem.onFoodPlaced(food, foodSystem.getFoods());
+    if (food) fishSystem.onFoodPlaced(food, getBaits());
+  }
+
+  function getBaits() {
+    return foodSystem.getFoods().concat(bugSystem.getLandedBugs());
   }
 
   function setupLayerCanvases(w, h) {
@@ -92,14 +110,27 @@ export default function (p) {
   };
 
   p.draw = function () {
-    const foods = foodSystem.getFoods();
     const fishes = fishSystem.getFishes();
+    const bugs = bugSystem.getBugs();
 
     p.clear();
     waveLayer.clear();
     fishLayer.clear();
+    bugSystem.update();
+    const landings = bugSystem.consumePendingLandings();
+    for (let i = 0; i < landings.length; i++) {
+      waveSim.addImpulseByPixel(
+        landings[i].x,
+        landings[i].y,
+        FOOD_LAND_IMPULSE_STRENGTH,
+        FOOD_LAND_IMPULSE_RADIUS
+      );
+      fishSystem.onFoodPlaced(landings[i], getBaits());
+    }
+    const foods = foodSystem.getFoods();
     foodSystem.updateByWave(waveSim.sampleGradientByPixel);
-    fishSystem.update(foods);
+    bugSystem.updateLandedByWave(waveSim.sampleGradientByPixel);
+    fishSystem.update(getBaits());
     simAccumulator += SIM_STEPS_PER_FRAME;
     while (simAccumulator >= 1) {
       waveSim.updateWaveStep();
@@ -111,7 +142,7 @@ export default function (p) {
     if (hasSplitRender) {
       waveSim.renderField(waveLayer);
       render.drawFishBodies(p, fishLayer, fishes);
-      render.drawOverlayFoodAndPop(p, foods, fishes);
+      render.drawOverlayFoodAndPop(p, foods, fishes, bugs);
     } else {
       // Compatibility fallback for deployments where render.js is still on old API.
       waveSim.renderField(p);

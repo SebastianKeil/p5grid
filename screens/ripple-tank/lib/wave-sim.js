@@ -72,6 +72,15 @@ export function createWaveSim(p) {
     }
   }
 
+  function snapPixelToCellCenter(px, py) {
+    const gx = p.constrain(Math.floor(px / cellW), 0, simCols - 1);
+    const gy = p.constrain(Math.floor(py / cellH), 0, simRows - 1);
+    return {
+      x: (gx + 0.5) * cellW,
+      y: (gy + 0.5) * cellH,
+    };
+  }
+
   function edgeDampingFactor(x, y) {
     const dx = Math.min(x, simCols - 1 - x);
     const dy = Math.min(y, simRows - 1 - y);
@@ -153,6 +162,7 @@ export function createWaveSim(p) {
     resetSimulationLayout,
     clearFields,
     addImpulseByPixel,
+    snapPixelToCellCenter,
     updateWaveStep,
     renderField,
     sampleGradientByPixel,
