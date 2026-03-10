@@ -151,6 +151,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  order: 1;
 }
 
 .nav-btn {
@@ -186,6 +187,7 @@ body {
   display: inline-grid;
   gap: 2px;
   place-self: center;
+  order: 0;
 }
 
 .mg-cell {
