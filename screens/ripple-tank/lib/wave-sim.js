@@ -158,6 +158,27 @@ export function createWaveSim(p) {
     return { dhdx, dhdy };
   }
 
+  function sampleHeightByPixel(px, py) {
+    const gx = Math.floor(px / cellW);
+    const gy = Math.floor(py / cellH);
+    if (!inBounds(gx, gy)) return null;
+    return heightField[idx(gx, gy)];
+  }
+
+  function getHeightRange() {
+    let minH = Infinity;
+    let maxH = -Infinity;
+    for (let i = 0; i < heightField.length; i++) {
+      const h = heightField[i];
+      if (h < minH) minH = h;
+      if (h > maxH) maxH = h;
+    }
+    if (!Number.isFinite(minH) || !Number.isFinite(maxH)) {
+      return { min: 0, max: 0 };
+    }
+    return { min: minH, max: maxH };
+  }
+
   return {
     resetSimulationLayout,
     clearFields,
@@ -166,5 +187,7 @@ export function createWaveSim(p) {
     updateWaveStep,
     renderField,
     sampleGradientByPixel,
+    sampleHeightByPixel,
+    getHeightRange,
   };
 }

@@ -49,6 +49,86 @@ function getEatPopCenter(oneFish) {
   };
 }
 
+function drawWaterLilyLeaf(p, x, y, size, rot) {
+  p.push();
+  p.translate(x, y);
+  p.rotate(rot);
+  p.noStroke();
+  p.fill(62, 138, 84, 185);
+  p.ellipse(0, 0, size, size * 0.85);
+  p.fill(84, 170, 108, 120);
+  p.ellipse(-size * 0.12, -size * 0.1, size * 0.5, size * 0.38);
+
+  // Small notch so each leaf reads clearly as a lily pad.
+  p.fill(26, 70, 48, 130);
+  p.triangle(0, 0, size * 0.5, -size * 0.08, size * 0.5, size * 0.08);
+  p.pop();
+}
+
+function drawWaterLilies(
+  p,
+  sampleGradientByPixel,
+  sampleHeightByPixel
+) {
+  const baseX = p.width * 0.16;
+  const baseY = p.height * 0.2;
+  const t = p.millis() * 0.001;
+  const leaves = [
+    { x: 0, y: 0, s: 82, r: 0.2, phase: 0.1, amp: 0.07 },
+    { x: 52, y: 18, s: 68, r: -0.25, phase: 0.7, amp: 0.08 },
+    { x: 24, y: 58, s: 74, r: 0.48, phase: 1.2, amp: 0.06 },
+    { x: 94, y: 54, s: 62, r: 0.06, phase: 1.8, amp: 0.08 },
+    { x: 118, y: 2, s: 54, r: -0.38, phase: 2.3, amp: 0.09 },
+    { x: 146, y: 36, s: 58, r: 0.14, phase: 2.9, amp: 0.08 },
+    { x: 74, y: -24, s: 50, r: -0.12, phase: 3.3, amp: 0.07 },
+    { x: -34, y: 34, s: 60, r: 0.3, phase: 3.8, amp: 0.08 },
+    { x: 8, y: 94, s: 56, r: -0.34, phase: 4.2, amp: 0.09 },
+    { x: 170, y: -10, s: 46, r: 0.22, phase: 4.9, amp: 0.08 },
+    { x: 196, y: 26, s: 44, r: -0.18, phase: 5.4, amp: 0.07 },
+    { x: 132, y: 82, s: 52, r: 0.36, phase: 5.9, amp: 0.08 },
+  ];
+
+  p.push();
+  for (let i = 0; i < leaves.length; i++) {
+    const oneLeaf = leaves[i];
+    // Gentle procedural wiggle, intentionally independent from the wave simulation.
+    const wiggleRot = Math.sin(t * 0.9 + oneLeaf.phase) * oneLeaf.amp;
+    const wiggleX = Math.cos(t * 0.75 + oneLeaf.phase) * 1.4;
+    const wiggleY = Math.sin(t * 0.62 + oneLeaf.phase) * 1.1;
+    const baseLeafX = baseX + oneLeaf.x + wiggleX;
+    const baseLeafY = baseY + oneLeaf.y + wiggleY;
+
+    let rippleX = 0;
+    let rippleY = 0;
+    let rippleRot = 0;
+    let bobY = 0;
+    if (typeof sampleGradientByPixel === "function") {
+      const grad = sampleGradientByPixel(baseLeafX, baseLeafY);
+      if (grad) {
+        // Strong coupling so ripple influence is clearly visible.
+        rippleX = p.constrain(-grad.dhdx * 70, -16, 16);
+        rippleY = p.constrain(-grad.dhdy * 70, -16, 16);
+        rippleRot = p.constrain((grad.dhdx - grad.dhdy) * 1.8, -0.75, 0.75);
+      }
+    }
+    if (typeof sampleHeightByPixel === "function") {
+      const localHeight = sampleHeightByPixel(baseLeafX, baseLeafY);
+      if (typeof localHeight === "number") {
+        bobY = p.constrain(localHeight * 18, -8, 8);
+      }
+    }
+
+    drawWaterLilyLeaf(
+      p,
+      baseLeafX + rippleX,
+      baseLeafY + rippleY + bobY,
+      oneLeaf.s,
+      oneLeaf.r + wiggleRot + rippleRot
+    );
+  }
+  p.pop();
+}
+
 export function drawFishBodies(p, target, fishes) {
   if (fishes.length === 0) return;
   target.push();
@@ -80,10 +160,22 @@ export function drawBugs(p, bugs) {
   p.pop();
 }
 
-export function drawOverlayFoodAndPop(p, foods, fishes, bugs) {
+export function drawOverlayFoodAndPop(
+  p,
+  foods,
+  fishes,
+  bugs,
+  sampleGradientByPixel,
+  sampleHeightByPixel
+) {
   p.push();
   p.noStroke();
 
+  drawWaterLilies(
+    p,
+    sampleGradientByPixel,
+    sampleHeightByPixel
+  );
   drawBugs(p, bugs);
 
   // Draw food pellets on crisp top layer.

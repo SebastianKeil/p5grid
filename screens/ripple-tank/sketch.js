@@ -142,7 +142,14 @@ export default function (p) {
     if (hasSplitRender) {
       waveSim.renderField(waveLayer);
       render.drawFishBodies(p, fishLayer, fishes);
-      render.drawOverlayFoodAndPop(p, foods, fishes, bugs);
+      render.drawOverlayFoodAndPop(
+        p,
+        foods,
+        fishes,
+        bugs,
+        waveSim.sampleGradientByPixel,
+        waveSim.sampleHeightByPixel
+      );
     } else {
       // Compatibility fallback for deployments where render.js is still on old API.
       waveSim.renderField(p);
