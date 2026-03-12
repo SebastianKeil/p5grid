@@ -1,6 +1,6 @@
 <div class="landing">
   <h1 class="landing-name">Hello</h1>
-  <p class="landing-tagline">This site asks you to explore some creative code, experiments &amp; curiosities.</p>
+  <p class="landing-tagline">A collection of digital curiosities. Poke around, click things, and see what breaks.</p>
 
   <div class="landing-nav-hint">
     <div class="landing-arrows">
@@ -46,12 +46,6 @@
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
-    opacity: 0.45;
-    transition: opacity 0.3s;
-  }
-
-  .landing-nav-hint:hover {
-    opacity: 0.7;
   }
 
   .landing-arrows {
@@ -62,16 +56,6 @@
   .arrow-icon {
     font-size: 1.4rem;
     color: rgba(255, 255, 255, 0.9);
-    animation: pulse 2.5s ease-in-out infinite;
-  }
-
-  .arrow-icon:nth-child(2) {
-    animation-delay: 0.3s;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 0.4; transform: scale(1); }
-    50%      { opacity: 1;   transform: scale(1.15); }
   }
 
   .landing-nav-hint p {
